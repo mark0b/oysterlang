@@ -8,8 +8,4 @@ edition = "2018"
 
 [dependencies]
 lazy_static = "*"
-num-derive = "*"
-
-[dependencies.regex]
-version = "*"
-features = ["pattern"]
+regex = "*"

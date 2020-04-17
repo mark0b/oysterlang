@@ -4,20 +4,55 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "type": "cargo",
-            "subcommand": "build",
-            "problemMatcher": [
-                "$rustc"
+            "label": "Check",
+            "type": "shell",
+            "command": "cargo",
+            "args": [
+                "check"
             ],
-            "group": "build"
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
         },
         {
-            "type": "cargo",
-            "subcommand": "check",
-            "problemMatcher": [
-                "$rustc"
+            "label": "Build",
+            "type": "shell",
+            "command": "cargo",
+            "args": [
+                "build"
             ],
-            "group": "build"
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "Test",
+            "type": "shell",
+            "command": "cargo",
+            "args": [
+                "test"
+            ],
+            "group": "test",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "Validate",
+            "dependsOn": [
+                // "Check",
+                // "Build",
+                "Test"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         }
     ]
 }
