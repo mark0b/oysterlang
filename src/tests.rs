@@ -47,8 +47,9 @@ mod tokenize {
 
 mod parse {
 
-    use crate::parser::{self, Expr, Program};
+    use crate::parser::{self, Expr, Prog};
     use crate::tokens::Token;
+    use parser::Stmt;
 
     #[test]
     fn test_single_integer() {
@@ -56,7 +57,7 @@ mod parse {
         let res = parser::parse(&ts);
 
         match res {
-            Ok(Program::Statement(box Expr::Num(n), box Program::End)) => assert_eq!(n, 1.0),
+            Ok(Prog::Stmt(box Stmt::Expr(Expr::Num(n)), box Prog::End)) => assert_eq!(n, 1.0),
             _ => unreachable!(),
         }
     }
@@ -65,12 +66,12 @@ mod parse {
 mod interpret {
     use crate::{
         interpreter,
-        parser::{Expr, Program},
+        parser::{Expr, Prog, Stmt},
     };
 
     #[test]
     fn test_single_integer() {
-        let prog = Program::Statement(box Expr::Num(1.0), box Program::End);
+        let prog = Prog::Stmt(box Stmt::Expr(Expr::Num(1.0)), box Prog::End);
         match interpreter::interpret(prog) {
             Ok(out) => assert_eq!(out, "1\n"),
             _ => unreachable!(),
@@ -145,5 +146,15 @@ mod eval {
     #[test]
     fn test_multiline() {
         assert_eval("1 + 1\n2 + 2\n3 + 3\n", "2\n4\n6\n")
+    }
+
+    #[test]
+    fn test_assign_is_void() {
+        assert_eval("$a = 1 + 2\n", "")
+    }
+
+    #[test]
+    fn test_vars() {
+        assert_eval("$a = 1 + 1\n$a = $a + 1\n$a\n", "3\n")
     }
 }
