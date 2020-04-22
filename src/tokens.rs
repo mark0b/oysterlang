@@ -35,7 +35,7 @@ pub enum Case {
 }
 
 lazy_static! {
-    static ref SPACE_REGEX: Regex = Regex::new(r"^[ \t]+").unwrap();
+    static ref SPACE_REGEX: Regex = Regex::new(r"^[ \t\r]+").unwrap();
     static ref VAR_REGEX: Regex = Regex::new(r"^\$[A-z0-9_]+").unwrap();
     static ref NUM_REGEX: Regex = Regex::new(r"^\d+(?:\.\d+)?").unwrap();
     static ref STR_REGEX: Regex = Regex::new("^\"[^\"]*\"").unwrap();
@@ -62,9 +62,9 @@ lazy_static! {
         Case::Sym("/", Token::Slash),
         Case::Sym("@", Token::At),
         Case::Sym("&", Token::Amp),
-        Case::Pat(&VAR_REGEX, |s| Token::Var(s)),
-        Case::Pat(&NUM_REGEX, |s| Token::Num(s)),
-        Case::Pat(&STR_REGEX, |s| Token::Str(s)),
+        Case::Pat(&NUM_REGEX, Token::Num),
+        Case::Pat(&VAR_REGEX, Token::Var),
+        Case::Pat(&STR_REGEX, Token::Str),
         // Case::Pat(&PATH_REGEX, |s| Token::Path(s)),
     ];
 }
