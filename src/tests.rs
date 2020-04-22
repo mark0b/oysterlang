@@ -37,28 +37,91 @@ mod tokenize {
     }
 
     #[test]
-    fn test_path() {
-        let path = String::from("\\this\\is\\some\\path.txt");
-        let ts = tokens::tokenize(&path).unwrap();
-        assert_eq!(ts.len(),1);
-        assert_eq!(ts[0],tokens::Token::Path(path));
-    }
-
-    #[test]
-    fn test_param() {
-        let par = String::from("--parameter");
-        let ts = tokens::tokenize(&par).unwrap();
-        assert_eq!(ts.len(),1);
-        assert_eq!(ts[0],tokens::Token::Param(par));
-    }
-
-
-    #[test]
     fn test_float_literal() {
         let s = String::from("1.72");
         let ts = tokens::tokenize(&s).unwrap();
         assert_eq!(ts.len(), 1);
         assert_eq!(ts[0], tokens::Token::Num(s));
+    }
+    
+    mod paths {
+        use super::*;
+
+        fn test_path(s: &str) {
+            let path = String::from(s);
+            let ts = tokens::tokenize(&path).unwrap();
+            assert_eq!(ts.len(),1);
+            assert_eq!(ts[0],tokens::Token::Path(path));
+        }    
+
+        #[test]
+        fn test_multi_path() {
+            let test_paths: Vec<&str> = vec![r"D:\this\file.txt",r"C:\this\path",
+                                            r"~\home\path",r".\this\path",
+                                            r".\this\file.txt",r"..\thats\path",
+                                            r"\\this\path",r".",r"..",r"~",
+                                            r"~/this/path",r"./this/path",
+                                            r"../that/path",r"/root/path.txt",
+                                            r"/root/path"];
+                for path in test_paths.iter() {
+                    test_path(path);
+                }
+        }
+        
+
+        #[test]
+        fn test_path_ext_win() {
+            test_path(".\\this.txt");
+        }
+
+        #[test]
+        fn test_path_ms_win() {
+            test_path(".\\multi\\segments");
+        }
+
+        #[test]
+        fn test_path_ext_unix() {
+            test_path("./this.txt");
+        }
+
+        #[test]
+        fn test_path_ms_unix() {
+            test_path("./multi/segments");
+        }
+
+        #[test]
+        fn test_path_home() {
+            test_path("~");
+        }
+
+        #[test]
+        fn test_path_dot() {
+            test_path(".");
+        }
+
+        #[test]
+        fn test_path_dotdot() {
+            test_path("..");
+        }
+
+        #[test]
+        fn test_path_resolved() {
+            test_path("resolved-from-path");
+        }
+    }
+
+    #[test]
+    fn test_param() {
+        let params = vec![String::from("--parameter"),
+        String::from("-r"),
+        String::from("--param-eter"),
+        String::from("-param")];
+        for par in params.iter() {
+            let ts = tokens::tokenize(par).unwrap();
+            assert_eq!(ts.len(),1);
+            assert_eq!(ts[0],tokens::Token::Param(String::from(par)));
+        }
+
     }
 }
 
@@ -115,7 +178,7 @@ mod parse {
         let mut count_num = 0;
         
         match res {
-            Ok(Program::Statement(box Expr::Command(box Expr::Path(s),v),box Program::End)) => {
+            Ok(Prog::Stmt(box Stmt::Expr(Expr::Command(box Expr::Path(s),v)),box Prog::End)) => {
                 assert_eq!(v.len(),ts.len()-2);
                 assert_eq!(s,String::from(".\\this\\is\\a\\path.txt"));
                 for ex in v.iter() {

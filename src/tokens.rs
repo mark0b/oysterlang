@@ -40,9 +40,14 @@ lazy_static! {
     static ref NUM_REGEX: Regex = Regex::new(r"^\d+(?:\.\d+)?").unwrap();
     static ref STR_REGEX: Regex = Regex::new("^\"[^\"]*\"").unwrap();
     static ref PATH_REGEX: Regex =
-        Regex::new(r"^((\.\./|[a-zA-Z0-9_/\-\\])*\.[a-zA-Z0-9]+)$").unwrap();
-    static ref PARAM_REGEX: Regex = Regex::new("^--?[A-z]+(-[A-z]+)*").unwrap();
+        Regex::new(r#"^(((\.\.?|~|[[:alpha:]]:|\\)(\\\.?[[:alnum:]^<>:"/\|?*]+)+)|((\.\.?|~)?(/\.?[[:alnum:]]+)+))(\.[[:alnum:]]+)?|(\.\.?|~|/|[[:alpha:]]:\\)"#).unwrap();
+    static ref PARAM_REGEX: Regex = Regex::new(r"^--?[[:alpha:]]+(-[[:alpha:]]+)*").unwrap();
     static ref CASES: Vec<Case> = vec![
+        Case::Pat(&VAR_REGEX, Token::Var),
+        Case::Pat(&NUM_REGEX, Token::Num),
+        Case::Pat(&STR_REGEX, Token::Str),
+        Case::Pat(&PATH_REGEX, Token::Path),
+        Case::Pat(&PARAM_REGEX, Token::Param),
         Case::Sym("\n", Token::NewLine),
         Case::Sym("(", Token::LParen),
         Case::Sym(")", Token::RParen),
@@ -62,11 +67,6 @@ lazy_static! {
         Case::Sym("/", Token::Slash),
         Case::Sym("@", Token::At),
         Case::Sym("&", Token::Amp),
-        Case::Pat(&VAR_REGEX, Token::Var),
-        Case::Pat(&NUM_REGEX, Token::Num),
-        Case::Pat(&STR_REGEX, Token::Str),
-        Case::Pat(&PATH_REGEX, Token::Path),
-        Case::Pat(&PARAM_REGEX, Token::Param),
     ];
 }
 
@@ -86,6 +86,7 @@ impl Lexer<'_> {
             match case {
                 Case::Sym(s, token) => {
                     if let Some(some) = self.take_sym(s, token.clone()) {
+
                         return Some(some);
                     }
                 }
@@ -94,6 +95,7 @@ impl Lexer<'_> {
                         return Some(some);
                     }
                 }
+
             }
         }
 
