@@ -1,5 +1,15 @@
 use crate::tokens::Token;
 
+pub enum Prog {
+    Stmt(Box<Stmt>, Box<Prog>),
+    End,
+}
+
+pub enum Stmt {
+    Assign(Box<String>, Box<Expr>),
+    Expr(Expr),
+}
+
 pub enum Expr {
     Add(Box<Expr>, Box<Expr>),
     Sub(Box<Expr>, Box<Expr>),
@@ -12,15 +22,11 @@ pub enum Expr {
     Command(Box<Expr>,Vec<Expr>),
     Path(String),
     Param(String),
+    Var(String),
     // UnaryOp(UnaryOp, Box<Expr>),
 }
 
-pub enum Program {
-    Statement(Box<Expr>, Box<Program>),
-    End,
-}
-
-pub fn parse(ts: &[Token]) -> Result<Program, String> {
+pub fn parse(ts: &[Token]) -> Result<Prog, String> {
     match parse_program(ts) {
         Some((prog, ts)) => match ts {
             [] => Ok(prog),
@@ -30,22 +36,37 @@ pub fn parse(ts: &[Token]) -> Result<Program, String> {
     }
 }
 
-fn parse_program(ts: &[Token]) -> Option<(Program, &[Token])> {
+fn parse_program(ts: &[Token]) -> Option<(Prog, &[Token])> {
     // If there aren't any tokens, end program.
     if let [] = ts {
-        return Some((Program::End, &[]));
+        return Some((Prog::End, &[]));
     }
-    // Otherwise, parse out an expression.
-    if let Some((expr, ts)) = parse_expression(ts) {
+
+    if let Some((stmt, ts)) = parse_statement(ts) {
         if let [t, ..] = ts {
             if let Token::NewLine | Token::Semi = t {
                 // Recurse to extract next line/command to return with the expression.
                 if let Some((next, ts)) = parse_program(&ts[1..]) {
-                    let prog = Program::Statement(Box::new(expr), Box::new(next));
+                    let prog = Prog::Stmt(Box::new(stmt), Box::new(next));
                     return Some((prog, ts));
                 }
             }
         }
+    }
+
+    return None;
+}
+
+fn parse_statement(ts: &[Token]) -> Option<(Stmt, &[Token])> {
+    if let [Token::Var(name), Token::Eq, ..] = ts {
+        if let Some((expr, ts)) = parse_expression(&ts[2..]) {
+            let stmt = Stmt::Assign(box name.clone(), box expr);
+            return Some((stmt, ts));
+        }
+    }
+
+    if let Some((expr, ts)) = parse_expression(ts) {
+        return Some((Stmt::Expr(expr), ts));
     }
 
     return None;
@@ -138,6 +159,10 @@ fn parse_factor(ts: &[Token]) -> Option<(Expr, &[Token])> {
 
     if let Some(some) = parse_param(ts) {
         return Some(some);
+    }
+    
+    if let [Token::Var(s), ..] = ts {
+        return Some((Expr::Var(s.clone()), &ts[1..]));
     }
 
     if let [Token::LParen, ..] = ts {
