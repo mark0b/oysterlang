@@ -25,8 +25,8 @@ pub enum Token {
     Var(String),
     Num(String),
     Str(String),
-    // Path(String),
-    // Param(String),
+    Path(String),
+    Param(String),
 }
 
 pub enum Case {
@@ -39,8 +39,8 @@ lazy_static! {
     static ref VAR_REGEX: Regex = Regex::new(r"^\$[A-z0-9_]+").unwrap();
     static ref NUM_REGEX: Regex = Regex::new(r"^\d+(?:\.\d+)?").unwrap();
     static ref STR_REGEX: Regex = Regex::new("^\"[^\"]*\"").unwrap();
-    // static ref PATH_REGEX: Regex =
-    //     Regex::new(r"^/$|(^(?=/)|^.|^\.\.)(/(?=[^/\0])[^/\0]+)*/?").unwrap();
+    static ref PATH_REGEX: Regex =
+        Regex::new(r"^((\.\./|[a-zA-Z0-9_/\-\\])*\.[a-zA-Z0-9]+)$").unwrap();
     static ref PARAM_REGEX: Regex = Regex::new("^--?[A-z]+(-[A-z]+)*").unwrap();
     static ref CASES: Vec<Case> = vec![
         Case::Sym("\n", Token::NewLine),
@@ -65,7 +65,8 @@ lazy_static! {
         Case::Pat(&VAR_REGEX, |s| Token::Var(s)),
         Case::Pat(&NUM_REGEX, |s| Token::Num(s)),
         Case::Pat(&STR_REGEX, |s| Token::Str(s)),
-        // Case::Pat(&PATH_REGEX, |s| Token::Path(s)),
+        Case::Pat(&PATH_REGEX, |s| Token::Path(s)),
+        Case::Pat(&PARAM_REGEX, |s| Token::Param(s)),
     ];
 }
 

@@ -44,6 +44,9 @@ fn eval_expr(expr: Expr) -> Result<Value, String> {
         Expr::Num(n) => Ok(Value::Num(n)),
         Expr::Str(s) => Ok(Value::Str(s)),
         Expr::Arr() => Ok(Value::Arr()),
+        Expr::Param(s) => Ok(Value::Str(s)),
+        Expr::Path(s) => Ok(Value::Str(s)),
+        Expr::Command(_,_) => Ok(Value::Str(String::new())),//Temporarily putting this hear as a placeholder.
         // Expr::UnaryOp(_, expr) => match eval_expr(*expr) {
         //     Ok(_) => unimplemented!(),
         //     Err(err) => Err(err),

@@ -37,6 +37,23 @@ mod tokenize {
     }
 
     #[test]
+    fn test_path() {
+        let path = String::from("\\this\\is\\some\\path.txt");
+        let ts = tokens::tokenize(&path).unwrap();
+        assert_eq!(ts.len(),1);
+        assert_eq!(ts[0],tokens::Token::Path(path));
+    }
+
+    #[test]
+    fn test_param() {
+        let par = String::from("--parameter");
+        let ts = tokens::tokenize(&par).unwrap();
+        assert_eq!(ts.len(),1);
+        assert_eq!(ts[0],tokens::Token::Param(par));
+    }
+
+
+    #[test]
     fn test_float_literal() {
         let s = String::from("1.72");
         let ts = tokens::tokenize(&s).unwrap();
@@ -60,6 +77,64 @@ mod parse {
             _ => unreachable!(),
         }
     }
+
+    #[test]
+    fn parsing_commands() {
+        let ts = vec![Token::Path(String::from(".\\this\\is\\a\\path.txt")),
+                               Token::Str(String::from("something_else")),
+                               Token::Path(String::from(".\\this\\is\\a\\path.txt")),
+                               Token::Param(String::from("-parameter")),
+                               Token::Str(String::from("something_else")),
+                               Token::Num(String::from("0.0")),
+                               Token::Str(String::from("something_else")),
+                               Token::Num(String::from("0.0")),
+                               Token::Param(String::from("-parameter")),
+                               Token::NewLine];
+        
+        let mut count_str_tok = 0;
+        let mut count_param_tok = 0;
+        let mut count_path_tok = 0;
+        let mut count_num_tok = 0;
+        
+        for tok in ts.iter() {
+            match tok {
+                Token::Str(_) => count_str_tok += 1,
+                Token::Param(_) => count_param_tok += 1,
+                Token::Path(_) => count_path_tok += 1,
+                Token::Num(_) => count_num_tok += 1,
+                _ => (),
+            }
+        }
+
+        let res = parser::parse(&ts);
+
+        let mut count_str = 0;
+        let mut count_param = 0;
+        let mut count_path = 0;
+        let mut count_num = 0;
+        
+        match res {
+            Ok(Program::Statement(box Expr::Command(box Expr::Path(s),v),box Program::End)) => {
+                assert_eq!(v.len(),ts.len()-2);
+                assert_eq!(s,String::from(".\\this\\is\\a\\path.txt"));
+                for ex in v.iter() {
+                    match ex {
+                        Expr::Str(_) => count_str += 1,
+                        Expr::Param(_) => count_param += 1,
+                        Expr::Path(_) => count_path += 1,
+                        Expr::Num(_) => count_num += 1,
+                        _ => panic!("There was something unexpected in the vector."),
+                    }
+                }
+            },
+            _ => unreachable!(),
+        }
+        assert_eq!(count_str,count_str_tok);
+        assert_eq!(count_param,count_param_tok);
+        assert_eq!(count_path,count_path_tok-1);
+        assert_eq!(count_num,count_num_tok);
+    }
+
 }
 
 mod interpret {
