@@ -43,21 +43,22 @@ mod tokenize {
         assert_eq!(ts.len(), 1);
         assert_eq!(ts[0], tokens::Token::Num(s));
     }
-    
+
     mod paths {
         use super::*;
 
         fn test_path(s: &str) {
             let path = String::from(s);
             let ts = tokens::tokenize(&path).unwrap();
-            println!("{:?}",ts);
-            assert_eq!(ts.len(),1);
-            assert_eq!(ts[0],tokens::Token::Path(path));
-        }    
+            println!("{:?}", ts);
+            assert_eq!(ts.len(), 1);
+            assert_eq!(ts[0], tokens::Token::Path(path));
+        }
 
         #[test]
         fn test_multi_path() {
-            let test_paths: Vec<&str> = vec![r"r.ext",
+            let test_paths: Vec<&str> = vec![
+                r"r.ext",
                 r"ruokdsho.ps1",
                 r"file.c",
                 r".gitignore",
@@ -69,27 +70,27 @@ mod tokenize {
                 r"../home/file.t",
                 r"./dir.something",
                 r"the_file.txt",
-                r"the-file.txt"];
-                for path in test_paths.iter() {
-                    test_path(path);
-                }
+                r"the-file.txt",
+            ];
+            for path in test_paths.iter() {
+                test_path(path);
+            }
         }
-        
-
     }
 
     #[test]
     fn test_param() {
-        let params = vec![String::from("--parameter"),
-        String::from("-r"),
-        String::from("--param-eter"),
-        String::from("-param")];
+        let params = vec![
+            String::from("--parameter"),
+            String::from("-r"),
+            String::from("--param-eter"),
+            String::from("-param"),
+        ];
         for par in params.iter() {
             let ts = tokens::tokenize(par).unwrap();
-            assert_eq!(ts.len(),1);
-            assert_eq!(ts[0],tokens::Token::Param(String::from(par)));
+            assert_eq!(ts.len(), 1);
+            assert_eq!(ts[0], tokens::Token::Param(String::from(par)));
         }
-
     }
 }
 
@@ -112,22 +113,24 @@ mod parse {
 
     #[test]
     fn parsing_commands() {
-        let ts = vec![Token::Path(String::from(".\\this\\is\\a\\path.txt")),
-                               Token::Str(String::from("something_else")),
-                               Token::Path(String::from(".\\this\\is\\a\\path.txt")),
-                               Token::Param(String::from("-parameter")),
-                               Token::Str(String::from("something_else")),
-                               Token::Num(String::from("0.0")),
-                               Token::Str(String::from("something_else")),
-                               Token::Num(String::from("0.0")),
-                               Token::Param(String::from("-parameter")),
-                               Token::NewLine];
-        
+        let ts = vec![
+            Token::Path(String::from(".\\this\\is\\a\\path.txt")),
+            Token::Str(String::from("something_else")),
+            Token::Path(String::from(".\\this\\is\\a\\path.txt")),
+            Token::Param(String::from("-parameter")),
+            Token::Str(String::from("something_else")),
+            Token::Num(String::from("0.0")),
+            Token::Str(String::from("something_else")),
+            Token::Num(String::from("0.0")),
+            Token::Param(String::from("-parameter")),
+            Token::NewLine,
+        ];
+
         let mut count_str_tok = 0;
         let mut count_param_tok = 0;
         let mut count_path_tok = 0;
         let mut count_num_tok = 0;
-        
+
         for tok in ts.iter() {
             match tok {
                 Token::Str(_) => count_str_tok += 1,
@@ -144,11 +147,11 @@ mod parse {
         let mut count_param = 0;
         let mut count_path = 0;
         let mut count_num = 0;
-        
+
         match res {
-            Ok(Prog::Stmt(box Stmt::Expr(Expr::Command(box Expr::Path(s),v)),box Prog::End)) => {
-                assert_eq!(v.len(),ts.len()-2);
-                assert_eq!(s,String::from(".\\this\\is\\a\\path.txt"));
+            Ok(Prog::Stmt(box Stmt::Expr(Expr::Command(box Expr::Path(s), v)), box Prog::End)) => {
+                assert_eq!(v.len(), ts.len() - 2);
+                assert_eq!(s, String::from(".\\this\\is\\a\\path.txt"));
                 for ex in v.iter() {
                     match ex {
                         Expr::Str(_) => count_str += 1,
@@ -158,15 +161,14 @@ mod parse {
                         _ => panic!("There was something unexpected in the vector."),
                     }
                 }
-            },
+            }
             _ => unreachable!(),
         }
-        assert_eq!(count_str,count_str_tok);
-        assert_eq!(count_param,count_param_tok);
-        assert_eq!(count_path,count_path_tok-1);
-        assert_eq!(count_num,count_num_tok);
+        assert_eq!(count_str, count_str_tok);
+        assert_eq!(count_param, count_param_tok);
+        assert_eq!(count_path, count_path_tok - 1);
+        assert_eq!(count_num, count_num_tok);
     }
-
 }
 
 mod interpret {
