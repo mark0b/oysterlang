@@ -39,15 +39,17 @@ lazy_static! {
     static ref VAR_REGEX: Regex = Regex::new(r"^\$[A-z0-9_]+").unwrap();
     static ref NUM_REGEX: Regex = Regex::new(r"^\d+(?:\.\d+)?").unwrap();
     static ref STR_REGEX: Regex = Regex::new("^\"[^\"]*\"").unwrap();
-    static ref PATH_REGEX: Regex =
-        Regex::new(r#"^(((\.\.?|~|[[:alpha:]]:|\\)(\\\.?[[:alnum:]^<>:"/\|?*]+)+)|((\.\.?|~)?(/\.?[[:alnum:]]+)+))(\.[[:alnum:]]+)?|(\.\.?|~|/|[[:alpha:]]:\\)"#).unwrap();
+    static ref FILE_PATH_REGEX: Regex = 
+        Regex::new(r#"^((\.?\.?/|~/|[[:alpha:]]:/)?)((\.?[[:print:][^<>:"/\|?*]]+)/?)*(\.[[:alnum:]]+)"#).unwrap();
+    // static ref PATH_REGEX: Regex =
+    //     Regex::new(r#"^(((\.\.?|~|[[:alpha:]]:|\\)(\\\.?[[:print:][^<>:"/\|?*]]+)+)|((\.\.?|~)?(/\.?[[:alnum:]]+)+))(\.[[:alnum:]]+)?|(\.\.?|~|/|[[:alpha:]]:\\)"#).unwrap();
     static ref PARAM_REGEX: Regex = Regex::new(r"^--?[[:alpha:]]+(-[[:alpha:]]+)*").unwrap();
     static ref CASES: Vec<Case> = vec![
         Case::Pat(&VAR_REGEX, Token::Var),
         Case::Pat(&NUM_REGEX, Token::Num),
         Case::Pat(&STR_REGEX, Token::Str),
-        Case::Pat(&PATH_REGEX, Token::Path),
         Case::Pat(&PARAM_REGEX, Token::Param),
+        Case::Pat(&FILE_PATH_REGEX,Token::Path),
         Case::Sym("\n", Token::NewLine),
         Case::Sym("(", Token::LParen),
         Case::Sym(")", Token::RParen),

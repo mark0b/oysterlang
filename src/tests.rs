@@ -50,64 +50,32 @@ mod tokenize {
         fn test_path(s: &str) {
             let path = String::from(s);
             let ts = tokens::tokenize(&path).unwrap();
+            println!("{:?}",ts);
             assert_eq!(ts.len(),1);
             assert_eq!(ts[0],tokens::Token::Path(path));
         }    
 
         #[test]
         fn test_multi_path() {
-            let test_paths: Vec<&str> = vec![r"D:\this\file.txt",r"C:\this\path",
-                                            r"~\home\path",r".\this\path",
-                                            r".\this\file.txt",r"..\thats\path",
-                                            r"\\this\path",r".",r"..",r"~",
-                                            r"~/this/path",r"./this/path",
-                                            r"../that/path",r"/root/path.txt",
-                                            r"/root/path"];
+            let test_paths: Vec<&str> = vec![r"r.ext",
+                r"ruokdsho.ps1",
+                r"file.c",
+                r".gitignore",
+                r"rust.rs",
+                r"something/something/something.txt",
+                r"/thing/text.txt",
+                r"C:/this/that.txt",
+                r"~/home/.txt",
+                r"../home/file.t",
+                r"./dir.something",
+                r"the_file.txt",
+                r"the-file.txt"];
                 for path in test_paths.iter() {
                     test_path(path);
                 }
         }
         
 
-        #[test]
-        fn test_path_ext_win() {
-            test_path(".\\this.txt");
-        }
-
-        #[test]
-        fn test_path_ms_win() {
-            test_path(".\\multi\\segments");
-        }
-
-        #[test]
-        fn test_path_ext_unix() {
-            test_path("./this.txt");
-        }
-
-        #[test]
-        fn test_path_ms_unix() {
-            test_path("./multi/segments");
-        }
-
-        #[test]
-        fn test_path_home() {
-            test_path("~");
-        }
-
-        #[test]
-        fn test_path_dot() {
-            test_path(".");
-        }
-
-        #[test]
-        fn test_path_dotdot() {
-            test_path("..");
-        }
-
-        #[test]
-        fn test_path_resolved() {
-            test_path("resolved-from-path");
-        }
     }
 
     #[test]
