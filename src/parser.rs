@@ -19,7 +19,7 @@ pub enum Expr {
     Arr(),
     Num(f64),
     Str(String),
-    Command(Box<Expr>,Vec<Expr>),
+    Command(Box<Expr>, Vec<Expr>),
     Path(String),
     Param(String),
     Var(String),
@@ -78,16 +78,19 @@ fn parse_expression(ts: &[Token]) -> Option<(Expr, &[Token])> {
         let mut ts = &ts[1..];
         loop {
             // Gather the following expressions as a vector for modifying the command.
-            if let Some((expr,ts0)) = parse_factor(ts) {
+            if let Some((expr, ts0)) = parse_factor(ts) {
                 exprs.push(expr);
                 ts = ts0;
                 continue;
             }
             break;
         }
-        return Some((Expr::Command(Box::new(Expr::Path(String::from(s))),exprs),ts));
+        return Some((
+            Expr::Command(Box::new(Expr::Path(String::from(s))), exprs),
+            ts,
+        ));
     }
-    
+
     if let Some((lfactor, ts)) = parse_term(ts) {
         let mut expr = lfactor;
         let mut ts = ts;
@@ -160,7 +163,7 @@ fn parse_factor(ts: &[Token]) -> Option<(Expr, &[Token])> {
     if let Some(some) = parse_param(ts) {
         return Some(some);
     }
-    
+
     if let [Token::Var(s), ..] = ts {
         return Some((Expr::Var(s.clone()), &ts[1..]));
     }
@@ -198,7 +201,7 @@ fn parse_str(ts: &[Token]) -> Option<(Expr, &[Token])> {
     return None;
 }
 
-fn parse_path(ts: &[Token]) -> Option<(Expr,&[Token])> {
+fn parse_path(ts: &[Token]) -> Option<(Expr, &[Token])> {
     if let [Token::Path(s), ..] = ts {
         let expr = Expr::Path(String::from(s));
         return Some((expr, &ts[1..]));
@@ -207,7 +210,7 @@ fn parse_path(ts: &[Token]) -> Option<(Expr,&[Token])> {
     return None;
 }
 
-fn parse_param(ts: &[Token]) -> Option<(Expr,&[Token])> {
+fn parse_param(ts: &[Token]) -> Option<(Expr, &[Token])> {
     if let [Token::Param(s), ..] = ts {
         let expr = Expr::Param(String::from(s));
         return Some((expr, &ts[1..]));

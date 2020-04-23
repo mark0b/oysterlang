@@ -39,7 +39,7 @@ lazy_static! {
     static ref VAR_REGEX: Regex = Regex::new(r"^\$[A-z0-9_]+").unwrap();
     static ref NUM_REGEX: Regex = Regex::new(r"^\d+(?:\.\d+)?").unwrap();
     static ref STR_REGEX: Regex = Regex::new("^\"[^\"]*\"").unwrap();
-    static ref FILE_PATH_REGEX: Regex = 
+    static ref FILE_PATH_REGEX: Regex =
         Regex::new(r#"^((\.?\.?/|~/|[[:alpha:]]:/)?)((\.?[[:print:][^<>:"/\|?*]]+)/?)*(\.[[:alnum:]]+)"#).unwrap();
     // static ref PATH_REGEX: Regex =
     //     Regex::new(r#"^(((\.\.?|~|[[:alpha:]]:|\\)(\\\.?[[:print:][^<>:"/\|?*]]+)+)|((\.\.?|~)?(/\.?[[:alnum:]]+)+))(\.[[:alnum:]]+)?|(\.\.?|~|/|[[:alpha:]]:\\)"#).unwrap();
@@ -88,7 +88,6 @@ impl Lexer<'_> {
             match case {
                 Case::Sym(s, token) => {
                     if let Some(some) = self.take_sym(s, token.clone()) {
-
                         return Some(some);
                     }
                 }
@@ -97,7 +96,6 @@ impl Lexer<'_> {
                         return Some(some);
                     }
                 }
-
             }
         }
 
