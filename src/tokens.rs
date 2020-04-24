@@ -69,7 +69,7 @@ lazy_static! {
     ];
 }
 
-pub struct Lexer<'a> {
+struct Lexer<'a> {
     pub input: &'a str,
 }
 

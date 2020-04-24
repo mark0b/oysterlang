@@ -40,7 +40,7 @@ fn main() {
 pub fn eval(input: &str) -> Result<String, String> {
     match tokens::tokenize(input) {
         Ok(ts) => match parser::parse(&ts) {
-            Ok(prog) => interpreter::interpret(prog),
+            Ok(prog) => interpreter::interpret(&prog),
             Err(err) => Err(err),
         },
         Err(err) => Err(format!("{}", err)),
