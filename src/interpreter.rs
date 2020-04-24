@@ -30,11 +30,11 @@ impl Display for Value {
     }
 }
 
-pub fn interpret(prog: Prog) -> Result<String, String> {
-    exec_prog(prog, get_env())
+pub fn interpret(prog: &Prog) -> Result<String, String> {
+    exec_prog(&prog, get_env())
 }
 
-fn exec_prog(prog: Prog, env: Env) -> Result<String, String> {
+fn exec_prog(prog: &Prog, env: Env) -> Result<String, String> {
     match prog {
         Prog::Stmt(box stmt, box next) => match exec_stmt(stmt, env) {
             Ok((vcur, env)) => match exec_prog(next, env) {
@@ -50,12 +50,12 @@ fn exec_prog(prog: Prog, env: Env) -> Result<String, String> {
     }
 }
 
-fn exec_stmt(stmt: Stmt, env: Env) -> Result<(String, Env), String> {
+fn exec_stmt(stmt: &Stmt, env: Env) -> Result<(String, Env), String> {
     match stmt {
         Stmt::Assign(box name, box expr) => match eval_expr(expr, env.clone()) {
             Ok(val) => {
                 let mut env = env.clone();
-                env.insert(name, val);
+                env.insert(String::from(name), val);
                 Ok((String::from(""), env))
             }
             Err(err) => Err(err),
@@ -67,18 +67,18 @@ fn exec_stmt(stmt: Stmt, env: Env) -> Result<(String, Env), String> {
     }
 }
 
-fn eval_expr(expr: Expr, env: Env) -> Result<Value, String> {
+fn eval_expr(expr: &Expr, env: Env) -> Result<Value, String> {
     match expr {
         Expr::Add(box lexpr, box rexpr) => eval_expr_add(lexpr, rexpr, env),
         Expr::Sub(box lexpr, box rexpr) => eval_expr_sub(lexpr, rexpr, env),
         Expr::Mul(box lexpr, box rexpr) => eval_expr_mul(lexpr, rexpr, env),
         Expr::Div(box lexpr, box rexpr) => eval_expr_div(lexpr, rexpr, env),
         Expr::Mod(box lexpr, box rexpr) => eval_expr_mod(lexpr, rexpr, env),
-        Expr::Num(n) => Ok(Value::Num(n)),
-        Expr::Str(s) => Ok(Value::Str(s)),
+        Expr::Num(n) => Ok(Value::Num(*n)),
+        Expr::Str(s) => Ok(Value::Str(String::from(s))),
         Expr::Arr() => Ok(Value::Arr()),
         Expr::Var(s) => 
-            match env.get(&s) {
+            match env.get(s) {
                 Some(val) => Ok(val.clone()),
                 None => Ok(Value::Void)
             }
@@ -89,7 +89,7 @@ fn eval_expr(expr: Expr, env: Env) -> Result<Value, String> {
     }
 }
 
-fn eval_expr2(lexpr: Expr, rexpr: Expr, env: Env) -> Result<(Value, Value), String> {
+fn eval_expr2(lexpr: &Expr, rexpr: &Expr, env: Env) -> Result<(Value, Value), String> {
     match eval_expr(lexpr, env.clone()) {
         Ok(lval) => match eval_expr(rexpr, env.clone()) {
             Ok(rval) => Ok((lval, rval)),
@@ -99,7 +99,7 @@ fn eval_expr2(lexpr: Expr, rexpr: Expr, env: Env) -> Result<(Value, Value), Stri
     }
 }
 
-fn eval_expr_div(lexpr: Expr, rexpr: Expr, env: Env) -> Result<Value, String> {
+fn eval_expr_div(lexpr: &Expr, rexpr: &Expr, env: Env) -> Result<Value, String> {
     match eval_expr2(lexpr, rexpr, env) {
         Ok((Value::Num(ln), Value::Num(rn))) => Ok(Value::Num(ln / rn)),
         Ok(_) => Err(String::from("Can only divide numers.")),
@@ -107,7 +107,7 @@ fn eval_expr_div(lexpr: Expr, rexpr: Expr, env: Env) -> Result<Value, String> {
     }
 }
 
-fn eval_expr_mul(lexpr: Expr, rexpr: Expr, env: Env) -> Result<Value, String> {
+fn eval_expr_mul(lexpr: &Expr, rexpr: &Expr, env: Env) -> Result<Value, String> {
     match eval_expr2(lexpr, rexpr, env) {
         Ok((Value::Num(ln), Value::Num(rn))) => Ok(Value::Num(ln * rn)),
         Ok(_) => Err(String::from("Can only multiply numers.")),
@@ -115,7 +115,7 @@ fn eval_expr_mul(lexpr: Expr, rexpr: Expr, env: Env) -> Result<Value, String> {
     }
 }
 
-fn eval_expr_add(lexpr: Expr, rexpr: Expr, env: Env) -> Result<Value, String> {
+fn eval_expr_add(lexpr: &Expr, rexpr: &Expr, env: Env) -> Result<Value, String> {
     match eval_expr2(lexpr, rexpr, env) {
         Ok((Value::Num(ln), Value::Num(rn))) => Ok(Value::Num(ln + rn)),
         Ok((Value::Str(ls), Value::Str(rs))) => Ok(Value::Str(format!("{}{}", ls, rs))),
@@ -124,7 +124,7 @@ fn eval_expr_add(lexpr: Expr, rexpr: Expr, env: Env) -> Result<Value, String> {
     }
 }
 
-fn eval_expr_sub(lexpr: Expr, rexpr: Expr, env: Env) -> Result<Value, String> {
+fn eval_expr_sub(lexpr: &Expr, rexpr: &Expr, env: Env) -> Result<Value, String> {
     match eval_expr2(lexpr, rexpr, env) {
         Ok((Value::Num(ln), Value::Num(rn))) => Ok(Value::Num(ln - rn)),
         Ok(_) => Err(String::from("Can only subtract numbers.")),
@@ -132,7 +132,7 @@ fn eval_expr_sub(lexpr: Expr, rexpr: Expr, env: Env) -> Result<Value, String> {
     }
 }
 
-fn eval_expr_mod(lexpr: Expr, rexpr: Expr, env: Env) -> Result<Value, String> {
+fn eval_expr_mod(lexpr: &Expr, rexpr: &Expr, env: Env) -> Result<Value, String> {
     match eval_expr2(lexpr, rexpr, env) {
         Ok((Value::Num(ln), Value::Num(rn))) => Ok(Value::Num(ln % rn)),
         Ok(_) => Err(String::from("Can only mod numbers.")),

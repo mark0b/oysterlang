@@ -72,7 +72,7 @@ mod interpret {
     #[test]
     fn test_single_integer() {
         let prog = Prog::Stmt(box Stmt::Expr(Expr::Num(1.0)), box Prog::End);
-        match interpreter::interpret(prog) {
+        match interpreter::interpret(&prog) {
             Ok(out) => assert_eq!(out, "1\n"),
             _ => unreachable!(),
         }

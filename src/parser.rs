@@ -24,7 +24,7 @@ pub enum Expr {
 }
 
 pub fn parse(ts: &[Token]) -> Result<Prog, String> {
-    match parse_program(ts) {
+    match parse_prog(ts) {
         Some((prog, ts)) => match ts {
             [] => Ok(prog),
             _ => Err(format!("Unexpected tokens: {:?}.", ts)),
@@ -33,15 +33,15 @@ pub fn parse(ts: &[Token]) -> Result<Prog, String> {
     }
 }
 
-fn parse_program(ts: &[Token]) -> Option<(Prog, &[Token])> {
+fn parse_prog(ts: &[Token]) -> Option<(Prog, &[Token])> {
     if let [] = ts {
         return Some((Prog::End, &[]));
     }
 
-    if let Some((stmt, ts)) = parse_statement(ts) {
+    if let Some((stmt, ts)) = parse_stmt(ts) {
         if let [t, ..] = ts {
             if let Token::NewLine | Token::Semi = t {
-                if let Some((next, ts)) = parse_program(&ts[1..]) {
+                if let Some((next, ts)) = parse_prog(&ts[1..]) {
                     let prog = Prog::Stmt(Box::new(stmt), Box::new(next));
                     return Some((prog, ts));
                 }
@@ -52,22 +52,22 @@ fn parse_program(ts: &[Token]) -> Option<(Prog, &[Token])> {
     return None;
 }
 
-fn parse_statement(ts: &[Token]) -> Option<(Stmt, &[Token])> {
+fn parse_stmt(ts: &[Token]) -> Option<(Stmt, &[Token])> {
     if let [Token::Var(name), Token::Eq, ..] = ts {
-        if let Some((expr, ts)) = parse_expression(&ts[2..]) {
+        if let Some((expr, ts)) = parse_expr(&ts[2..]) {
             let stmt = Stmt::Assign(box name.clone(), box expr);
             return Some((stmt, ts));
         }
     }
 
-    if let Some((expr, ts)) = parse_expression(ts) {
+    if let Some((expr, ts)) = parse_expr(ts) {
         return Some((Stmt::Expr(expr), ts));
     }
 
     return None;
 }
 
-fn parse_expression(ts: &[Token]) -> Option<(Expr, &[Token])> {
+fn parse_expr(ts: &[Token]) -> Option<(Expr, &[Token])> {
     if let Some((lfactor, ts)) = parse_term(ts) {
         let mut expr = lfactor;
         let mut ts = ts;
@@ -136,7 +136,7 @@ fn parse_factor(ts: &[Token]) -> Option<(Expr, &[Token])> {
     }
 
     if let [Token::LParen, ..] = ts {
-        if let Some((expr, ts)) = parse_expression(&ts[1..]) {
+        if let Some((expr, ts)) = parse_expr(&ts[1..]) {
             if let [Token::RParen, ..] = ts {
                 return Some((expr, &ts[1..]));
             }
