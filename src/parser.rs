@@ -20,7 +20,6 @@ pub enum Expr {
     Num(f64),
     Str(String),
     Var(String),
-    // UnaryOp(UnaryOp, Box<Expr>),
 }
 
 pub fn parse(ts: &[Token]) -> Result<Prog, String> {
