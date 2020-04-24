@@ -74,7 +74,7 @@ fn parse_statement(ts: &[Token]) -> Option<(Stmt, &[Token])> {
 
 fn parse_expression(ts: &[Token]) -> Option<(Expr, &[Token])> {
     if let [Token::Path(s), ..] = ts {
-        let mut exprs = Vec::new();
+        let exprs: Vec<Expr> = Vec::new();
         let mut ts = &ts[1..];
         loop {
             // Gather the following expressions as a vector for modifying the command.

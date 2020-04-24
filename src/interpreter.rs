@@ -20,7 +20,7 @@ pub enum Value {
 }
 
 impl Display for Value {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             Value::Str(s) => write!(f, "{}", s),
             Value::Num(n) => write!(f, "{}", n),
@@ -77,9 +77,9 @@ fn eval_expr(expr: Expr, env: Env) -> Result<Value, String> {
         Expr::Num(n) => Ok(Value::Num(n)),
         Expr::Str(s) => Ok(Value::Str(s)),
         Expr::Arr() => Ok(Value::Arr()),
-        Expr::Param(_) => unimplemented!(),      //TODO
-        Expr::Path(_) => unimplemented!(),       //TODO
-        Expr::Command(_, _) => unimplemented!(), //TODO
+        Expr::Param(s) => Ok(Value::Str(s)),
+        Expr::Path(s) => Ok(Value::Str(s)),
+        Expr::Command(box expr, args) => eval_command(expr, args, env),
         Expr::Var(s) => match env.get(&s) {
             Some(val) => Ok(val.clone()),
             None => Ok(Value::Void),
@@ -140,4 +140,16 @@ fn eval_expr_mod(lexpr: Expr, rexpr: Expr, env: Env) -> Result<Value, String> {
         Ok(_) => Err(String::from("Can only mod numbers.")),
         Err(err) => Err(err),
     }
+}
+
+fn eval_command(expr: Expr,args: Vec<Expr>, env: Env) -> Result<Value, String> {
+    if let Expr::Path(s) = expr {
+        let mut command = std::process::Command::new(s);
+        while let Some(arg) = args.first() {
+            if let Ok(val) = eval_expr(arg,env.clone()) {
+                command.arg(format!("{}", val));
+            }
+        }
+    }
+    return Ok(Value::Str(String::from("")));
 }
