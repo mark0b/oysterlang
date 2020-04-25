@@ -269,7 +269,6 @@ mod eval {
 
     #[test]
     fn test_command_git() {
-        assert_eval("git --version\n","0\n")
+        assert_eval("git --version\n", "0\n")
     }
-
 }

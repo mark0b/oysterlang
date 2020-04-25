@@ -1,7 +1,7 @@
 use crate::parser::*;
-use std::{collections::HashMap};
-use std::fmt::{Display, Formatter, self};
-use std::process::{self,Command,Stdio};
+use std::collections::HashMap;
+use std::fmt::{self, Display, Formatter};
+use std::process::{self, Command, Stdio};
 
 type Env = HashMap<String, Value>;
 
@@ -85,7 +85,7 @@ fn eval_expr(expr: &Expr, env: &Env) -> Result<Value, String> {
         Expr::Param(s) => Ok(Value::Str(String::from(s))),
         Expr::Path(s) => Ok(Value::Str(String::from(s))),
         Expr::Command(box expr, args) => eval_command(expr, args, env),
-        Expr::Var(s) => 
+        Expr::Var(s) =>
             match env.get(s) {
                 Some(val) => Ok(val.clone()),
                 None => Ok(Value::Void)
@@ -149,19 +149,22 @@ fn eval_expr_mod(lexpr: &Expr, rexpr: &Expr, env: &Env) -> Result<Value, String>
     }
 }
 
-fn eval_command(expr: &Expr,args: &Vec<Expr>, env: &Env) -> Result<Value, String> {
+fn eval_command(expr: &Expr, args: &Vec<Expr>, env: &Env) -> Result<Value, String> {
     if let Expr::Path(s) = expr {
         let mut command = Command::new(s);
-        match args.iter()
-            .map(|a| eval_expr(a,env))
-            .collect::<Result<Vec<Value>,String>>()
+        match args
+            .iter()
+            .map(|a| eval_expr(a, env))
+            .collect::<Result<Vec<Value>, String>>()
         {
-            Ok(vals) => {command.args(vals.iter().map(|a| format!("{}",a)));},
+            Ok(vals) => {
+                command.args(vals.iter().map(|a| format!("{}", a)));
+            }
             Err(err) => return Err(err),
         }
         let proc = match command.status() {
             Ok(proc) => proc,
-            Err(err) => return Err(format!("{}",err)),
+            Err(err) => return Err(format!("{}", err)),
         };
         if proc.success() {
             return Ok(Value::Proc(proc));
