@@ -40,7 +40,7 @@ lazy_static! {
     static ref NUM_REGEX: Regex = Regex::new(r"^\d+(?:\.\d+)?").unwrap();
     static ref STR_REGEX: Regex = Regex::new("^\"[^\"]*\"").unwrap();
     static ref FILE_PATH_REGEX: Regex =
-        Regex::new(r#"^((\.?\.?/|~/|[[:alpha:]]:/)?)((\.?[[:print:][^<>:"/\|?*]]+)/?)*(\.[[:alnum:]]+)"#).unwrap();
+        Regex::new(r#"^(((\.?\.?/|~/|[[:alpha:]]:/)?)((\.?[[:print:][^<>:"/\|?*]]+)/?)*(\.[[:alnum:]]+))|^([[:alpha:]][[:alnum:]]*)"#).unwrap();
     // static ref PATH_REGEX: Regex =
     //     Regex::new(r#"^(((\.\.?|~|[[:alpha:]]:|\\)(\\\.?[[:print:][^<>:"/\|?*]]+)+)|((\.\.?|~)?(/\.?[[:alnum:]]+)+))(\.[[:alnum:]]+)?|(\.\.?|~|/|[[:alpha:]]:\\)"#).unwrap();
     static ref PARAM_REGEX: Regex = Regex::new(r"^--?[[:alpha:]]+(-[[:alpha:]]+)*").unwrap();

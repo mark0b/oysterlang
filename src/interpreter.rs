@@ -1,6 +1,7 @@
 use crate::parser::*;
 use std::{collections::HashMap};
 use std::fmt::{Display, Formatter, self};
+use std::process::{self,Command,Stdio};
 
 type Env = HashMap<String, Value>;
 
@@ -9,12 +10,17 @@ pub enum Value {
     Str(String),
     Num(f64),
     Arr(),
+    Proc(process::ExitStatus),
     Void,
 }
 
 impl Display for Value {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match self {
+            Value::Proc(out) => match out.code() {
+                Some(code) => write!(f, "{}", code),
+                None => write!(f, "No exit code."),
+            }, //TODO
             Value::Str(s) => write!(f, "{}", s),
             Value::Num(n) => write!(f, "{}", n),
             Value::Arr() => write!(f, "[]"),
@@ -145,12 +151,23 @@ fn eval_expr_mod(lexpr: &Expr, rexpr: &Expr, env: &Env) -> Result<Value, String>
 
 fn eval_command(expr: &Expr,args: &Vec<Expr>, env: &Env) -> Result<Value, String> {
     if let Expr::Path(s) = expr {
-        let mut command = std::process::Command::new(s);
-        while let Some(arg) = args.first() {
-            if let Ok(val) = eval_expr(arg,env) {
-                command.arg(format!("{}", val));
-            }
+        let mut command = Command::new(s);
+        match args.iter()
+            .map(|a| eval_expr(a,env))
+            .collect::<Result<Vec<Value>,String>>()
+        {
+            Ok(vals) => {command.args(vals.iter().map(|a| format!("{}",a)));},
+            Err(err) => return Err(err),
+        }
+        let proc = match command.status() {
+            Ok(proc) => proc,
+            Err(err) => return Err(format!("{}",err)),
+        };
+        if proc.success() {
+            return Ok(Value::Proc(proc));
+        } else {
+            return Err(String::from("Command failed to execute."));
         }
     }
-    return Ok(Value::Str(String::from("")));
+    return Err(String::from("Failed to evaluate command."));
 }
