@@ -58,6 +58,7 @@ mod tokenize {
         #[test]
         fn test_multi_path() {
             let test_paths: Vec<&str> = vec![
+                r"../hello/target/debug/hello.exe",
                 r"r.ext",
                 r"ruokdsho.ps1",
                 r"file.c",
@@ -180,7 +181,7 @@ mod interpret {
     #[test]
     fn test_single_integer() {
         let prog = Prog::Stmt(box Stmt::Expr(Expr::Num(1.0)), box Prog::End);
-        match interpreter::interpret(prog) {
+        match interpreter::interpret(&prog) {
             Ok(out) => assert_eq!(out, "1\n"),
             _ => unreachable!(),
         }
@@ -264,5 +265,10 @@ mod eval {
     #[test]
     fn test_vars() {
         assert_eval("$a = 1 + 1\n$a = $a + 1\n$a\n", "3\n")
+    }
+
+    #[test]
+    fn test_command_git() {
+        assert_eval("git --version\n", "0\n")
     }
 }

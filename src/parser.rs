@@ -23,11 +23,10 @@ pub enum Expr {
     Path(String),
     Param(String),
     Var(String),
-    // UnaryOp(UnaryOp, Box<Expr>),
 }
 
 pub fn parse(ts: &[Token]) -> Result<Prog, String> {
-    match parse_program(ts) {
+    match parse_prog(ts) {
         Some((prog, ts)) => match ts {
             [] => Ok(prog),
             _ => Err(format!("Unexpected tokens: {:?}.", ts)),
@@ -36,17 +35,15 @@ pub fn parse(ts: &[Token]) -> Result<Prog, String> {
     }
 }
 
-fn parse_program(ts: &[Token]) -> Option<(Prog, &[Token])> {
-    // If there aren't any tokens, end program.
+fn parse_prog(ts: &[Token]) -> Option<(Prog, &[Token])> {
     if let [] = ts {
         return Some((Prog::End, &[]));
     }
 
-    if let Some((stmt, ts)) = parse_statement(ts) {
+    if let Some((stmt, ts)) = parse_stmt(ts) {
         if let [t, ..] = ts {
             if let Token::NewLine | Token::Semi = t {
-                // Recurse to extract next line/command to return with the expression.
-                if let Some((next, ts)) = parse_program(&ts[1..]) {
+                if let Some((next, ts)) = parse_prog(&ts[1..]) {
                     let prog = Prog::Stmt(Box::new(stmt), Box::new(next));
                     return Some((prog, ts));
                 }
@@ -57,24 +54,24 @@ fn parse_program(ts: &[Token]) -> Option<(Prog, &[Token])> {
     return None;
 }
 
-fn parse_statement(ts: &[Token]) -> Option<(Stmt, &[Token])> {
+fn parse_stmt(ts: &[Token]) -> Option<(Stmt, &[Token])> {
     if let [Token::Var(name), Token::Eq, ..] = ts {
-        if let Some((expr, ts)) = parse_expression(&ts[2..]) {
+        if let Some((expr, ts)) = parse_expr(&ts[2..]) {
             let stmt = Stmt::Assign(box name.clone(), box expr);
             return Some((stmt, ts));
         }
     }
 
-    if let Some((expr, ts)) = parse_expression(ts) {
+    if let Some((expr, ts)) = parse_expr(ts) {
         return Some((Stmt::Expr(expr), ts));
     }
 
     return None;
 }
 
-fn parse_expression(ts: &[Token]) -> Option<(Expr, &[Token])> {
+fn parse_expr(ts: &[Token]) -> Option<(Expr, &[Token])> {
     if let [Token::Path(s), ..] = ts {
-        let mut exprs = Vec::new();
+        let mut exprs: Vec<Expr> = Vec::new();
         let mut ts = &ts[1..];
         loop {
             // Gather the following expressions as a vector for modifying the command.
@@ -169,8 +166,7 @@ fn parse_factor(ts: &[Token]) -> Option<(Expr, &[Token])> {
     }
 
     if let [Token::LParen, ..] = ts {
-        // If you find parentheses, recurse back to "Expression" level.
-        if let Some((expr, ts)) = parse_expression(&ts[1..]) {
+        if let Some((expr, ts)) = parse_expr(&ts[1..]) {
             if let [Token::RParen, ..] = ts {
                 // Make sure you find a right parenthesis at the end of this nested expression.
                 return Some((expr, &ts[1..]));
