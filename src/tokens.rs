@@ -36,7 +36,7 @@ pub enum Case {
 
 lazy_static! {
     static ref SPACE_REGEX: Regex = Regex::new(r"^[ \t\r]+").unwrap();
-    static ref VAR_REGEX: Regex = Regex::new(r"^\$[A-z0-9_]+").unwrap();
+    static ref VAR_REGEX: Regex = Regex::new(r"^\$[A-z0-9_?]+").unwrap();
     static ref NUM_REGEX: Regex = Regex::new(r"^\d+(?:\.\d+)?").unwrap();
     static ref STR_REGEX: Regex = Regex::new("^\"[^\"]*\"").unwrap();
     static ref FILE_PATH_REGEX: Regex =
@@ -93,6 +93,7 @@ impl Lexer<'_> {
                 }
                 Case::Pat(pat, f) => {
                     if let Some(some) = self.take_regex(pat, *f) {
+                        //eprintln!("found token {:?}",some); //uncomment this to troubleshoot.
                         return Some(some);
                     }
                 }

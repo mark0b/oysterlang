@@ -150,7 +150,7 @@ mod parse {
         let mut count_num = 0;
 
         match res {
-            Ok(Prog::Stmt(box Stmt::Expr(Expr::Command(box Expr::Path(s), v)), box Prog::End)) => {
+            Ok(Prog::Stmt(box Stmt::Expr(Expr::Cmd(box Expr::Path(s), v)), box Prog::End)) => {
                 assert_eq!(v.len(), ts.len() - 2);
                 assert_eq!(s, String::from(".\\this\\is\\a\\path.txt"));
                 for ex in v.iter() {
@@ -268,7 +268,17 @@ mod eval {
     }
 
     #[test]
-    fn test_command_git() {
-        assert_eval("git --version\n", "0\n")
+    fn test_command_python() {
+        assert_eval("python -c \"print(1+1)\"\n$?\n", "2\n0\n")
     }
+
+    #[test]
+    fn test_command_echo() {
+        assert_eval("cmd \"/C\" \"echo nothing\"\n$?\n", "nothing\n0\n")
+    }
+
+    // #[test]
+    // fn test_command_hello() {
+    //     assert_eval("../hello/target/debug/hello.exe\n", "hello\n")
+    // }
 }
