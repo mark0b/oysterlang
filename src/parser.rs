@@ -19,10 +19,10 @@ pub enum Expr {
     Arr(),
     Num(f64),
     Str(String),
-    Command(Box<Expr>, Vec<Expr>),
     Path(String),
     Param(String),
     Var(String),
+    Cmd(Box<Expr>, Vec<Expr>),
 }
 
 pub fn parse(ts: &[Token]) -> Result<Prog, String> {
@@ -82,10 +82,8 @@ fn parse_expr(ts: &[Token]) -> Option<(Expr, &[Token])> {
             }
             break;
         }
-        return Some((
-            Expr::Command(Box::new(Expr::Path(String::from(s))), exprs),
-            ts,
-        ));
+        let expr = Expr::Cmd(Box::new(Expr::Path(String::from(s))), exprs);
+        return Some((expr, ts));
     }
 
     if let Some((lfactor, ts)) = parse_term(ts) {
