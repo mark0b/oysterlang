@@ -83,7 +83,7 @@ fn parse_expr(ts: &[Token]) -> Option<(Expr, &[Token])> {
             break;
         }
         let expr = Expr::Cmd(Box::new(Expr::Path(String::from(s))), exprs);
-        return Some((expr,ts));
+        return Some((expr, ts));
     }
 
     if let Some((lfactor, ts)) = parse_term(ts) {

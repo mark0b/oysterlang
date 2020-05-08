@@ -2,8 +2,8 @@
 
 #[macro_use]
 extern crate lazy_static;
-use std::{io, env};
 use std::io::Write;
+use std::{env, io};
 
 mod interpreter;
 mod parser;
@@ -30,7 +30,7 @@ fn main() {
         io::stdin()
             .read_line(&mut input)
             .expect("Failed to read line");
-        
+
         // check if input is empty
         if input.trim_end().len() == 0 {
             continue;
@@ -50,9 +50,9 @@ fn main() {
 pub fn eval(input: &str) -> Result<String, String> {
     match tokens::tokenize(input) {
         Ok(ts) => match parser::parse(&ts) {
-                Ok(prog) => interpreter::interpret(&prog),
-                Err(err) => Err(err),
-            }
+            Ok(prog) => interpreter::interpret(&prog),
+            Err(err) => Err(err),
+        },
         Err(err) => Err(format!("{}", err)),
     }
 }

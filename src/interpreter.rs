@@ -1,7 +1,7 @@
 use crate::parser::*;
 use std::collections::HashMap;
 use std::fmt::{self, Display, Formatter};
-use std::process::{self, Command, Stdio};
+use std::process::{Command, Stdio};
 
 type Env = HashMap<String, Value>;
 
@@ -108,7 +108,7 @@ fn eval_expr2(lexpr: &Expr, rexpr: &Expr, env: &Env) -> Result<(Value, Value), S
 
 fn eval_expr_div(lexpr: &Expr, rexpr: &Expr, env: &Env) -> Result<(Value, Env), String> {
     match eval_expr2(lexpr, rexpr, env) {
-        Ok((Value::Num(ln), Value::Num(rn))) => Ok((Value::Num(ln / rn),env.clone())),
+        Ok((Value::Num(ln), Value::Num(rn))) => Ok((Value::Num(ln / rn), env.clone())),
         Ok(_) => Err(String::from("Can only divide numers.")),
         Err(err) => Err(err),
     }
@@ -116,7 +116,7 @@ fn eval_expr_div(lexpr: &Expr, rexpr: &Expr, env: &Env) -> Result<(Value, Env), 
 
 fn eval_expr_mul(lexpr: &Expr, rexpr: &Expr, env: &Env) -> Result<(Value, Env), String> {
     match eval_expr2(lexpr, rexpr, env) {
-        Ok((Value::Num(ln), Value::Num(rn))) => Ok((Value::Num(ln * rn),env.clone())),
+        Ok((Value::Num(ln), Value::Num(rn))) => Ok((Value::Num(ln * rn), env.clone())),
         Ok(_) => Err(String::from("Can only multiply numers.")),
         Err(err) => Err(err),
     }
@@ -124,8 +124,10 @@ fn eval_expr_mul(lexpr: &Expr, rexpr: &Expr, env: &Env) -> Result<(Value, Env), 
 
 fn eval_expr_add(lexpr: &Expr, rexpr: &Expr, env: &Env) -> Result<(Value, Env), String> {
     match eval_expr2(lexpr, rexpr, env) {
-        Ok((Value::Num(ln), Value::Num(rn))) => Ok((Value::Num(ln + rn),env.clone())),
-        Ok((Value::Str(ls), Value::Str(rs))) => Ok((Value::Str(format!("{}{}", ls, rs)),env.clone())),
+        Ok((Value::Num(ln), Value::Num(rn))) => Ok((Value::Num(ln + rn), env.clone())),
+        Ok((Value::Str(ls), Value::Str(rs))) => {
+            Ok((Value::Str(format!("{}{}", ls, rs)), env.clone()))
+        }
         Ok(_) => Err(String::from("Can only add values of the same type.")),
         Err(err) => Err(err),
     }
@@ -133,7 +135,7 @@ fn eval_expr_add(lexpr: &Expr, rexpr: &Expr, env: &Env) -> Result<(Value, Env), 
 
 fn eval_expr_sub(lexpr: &Expr, rexpr: &Expr, env: &Env) -> Result<(Value, Env), String> {
     match eval_expr2(lexpr, rexpr, env) {
-        Ok((Value::Num(ln), Value::Num(rn))) => Ok((Value::Num(ln - rn),env.clone())),
+        Ok((Value::Num(ln), Value::Num(rn))) => Ok((Value::Num(ln - rn), env.clone())),
         Ok(_) => Err(String::from("Can only subtract numbers.")),
         Err(err) => Err(err),
     }
@@ -141,7 +143,7 @@ fn eval_expr_sub(lexpr: &Expr, rexpr: &Expr, env: &Env) -> Result<(Value, Env), 
 
 fn eval_expr_mod(lexpr: &Expr, rexpr: &Expr, env: &Env) -> Result<(Value, Env), String> {
     match eval_expr2(lexpr, rexpr, env) {
-        Ok((Value::Num(ln), Value::Num(rn))) => Ok((Value::Num(ln % rn),env.clone())),
+        Ok((Value::Num(ln), Value::Num(rn))) => Ok((Value::Num(ln % rn), env.clone())),
         Ok(_) => Err(String::from("Can only mod numbers.")),
         Err(err) => Err(err),
     }
@@ -165,7 +167,7 @@ fn eval_command(expr: &Expr, env: &Env) -> Result<(Value, Env), String> {
                     .args(vals.iter().map(|a| format!("{}", a)))
                     .stdin(Stdio::inherit())
                     .output()
-                    {
+                {
                     Ok(out) => {
                         let mut env = env.clone();
                         if let Some(code) = out.status.code() {
