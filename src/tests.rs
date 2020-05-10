@@ -274,11 +274,11 @@ mod eval {
 
     #[test]
     fn test_command_echo() {
-        assert_eval("cmd \"/C\" \"echo nothing\"\n$?\n", "nothing\n0\n")
+        assert_eval("bash \"-c\" \"echo nothing\"\n$?\n", "nothing\n0\n")
     }
 
     // #[test]
     // fn test_command_hello() {
-    //     assert_eval("../hello/target/debug/hello.exe\n", "hello\n")
+    //     assert_eval("./hello.exe\n", "Prompting an Input\nHello, world!\nhello\n")
     // }
 }

@@ -1,7 +1,7 @@
 use crate::parser::*;
 use std::collections::HashMap;
 use std::fmt::{self, Display, Formatter};
-use std::process::{Command, Stdio};
+use std::process::{self, Command, Stdio};
 
 type Env = HashMap<String, Value>;
 
@@ -10,6 +10,7 @@ pub enum Value {
     Str(String),
     Num(f64),
     Arr(),
+    Pipeline(process::Output),
     Void,
 }
 
@@ -19,6 +20,14 @@ impl Display for Value {
             Value::Str(s) => write!(f, "{}", s),
             Value::Num(n) => write!(f, "{}", n),
             Value::Arr() => write!(f, "[]"),
+            Value::Pipeline(out) => write!(
+                f,
+                "{}",
+                match String::from_utf8(out.clone().stdout) {
+                    Ok(out) => String::from(out.trim_end()),
+                    Err(err) => format!("{}", err),
+                }
+            ),
             Value::Void => write!(f, ""),
         }
     }
@@ -166,6 +175,7 @@ fn eval_command(expr: &Expr, env: &Env) -> Result<(Value, Env), String> {
                 match command
                     .args(vals.iter().map(|a| format!("{}", a)))
                     .stdin(Stdio::inherit())
+                    .stdout(Stdio::piped()) //if stdout is inherited output stream will be empty, if it is piped, we don't have a prompt for input.
                     .output()
                 {
                     Ok(out) => {
@@ -173,10 +183,11 @@ fn eval_command(expr: &Expr, env: &Env) -> Result<(Value, Env), String> {
                         if let Some(code) = out.status.code() {
                             env.insert(String::from("$?"), Value::Num(code as f64));
                         }
-                        match String::from_utf8(out.stdout) {
-                            Ok(out) => return Ok((Value::Str(String::from(out.trim_end())), env)),
-                            Err(err) => return Err(format!("{}", err)),
-                        }
+                        return Ok((Value::Pipeline(out), env));
+                        // match String::from_utf8(out.stdout) {
+                        //     Ok(out) => return Ok((Value::Str(String::from(out.trim_end())), env)),
+                        //     Err(err) => return Err(format!("{}", err)),
+                        // }
                     }
                     Err(err) => {
                         return Err(format!("{}", err));
