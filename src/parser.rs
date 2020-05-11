@@ -82,7 +82,7 @@ fn parse_expr(ts: &[Token]) -> Option<(Expr, &[Token])> {
             }
             break;
         }
-        let expr = Expr::Cmd(Box::new(Expr::Path(String::from(s))), exprs);
+        let expr = Expr::Cmd(box Expr::Path(String::from(s)), exprs);
         return Some((expr, ts));
     }
 
