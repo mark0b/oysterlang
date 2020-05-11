@@ -160,7 +160,6 @@ fn eval_expr_mod(lexpr: &Expr, rexpr: &Expr, env: &Env) -> Result<(Value, Env), 
 
 fn eval_command(expr: &Expr, env: &Env) -> Result<(Value, Env), String> {
     if let Expr::Cmd(box Expr::Path(s), args) = expr {
-        let mut command = Command::new(s);
         match args
             .iter()
             .map(|a| {
@@ -172,10 +171,11 @@ fn eval_command(expr: &Expr, env: &Env) -> Result<(Value, Env), String> {
             .collect::<Result<Vec<Value>, String>>()
         {
             Ok(vals) => {
-                match command
+                match Command::new(s)
                     .args(vals.iter().map(|a| format!("{}", a)))
                     .stdin(Stdio::inherit())
-                    .stdout(Stdio::piped()) //if stdout is inherited output stream will be empty, if it is piped, we don't have a prompt for input.
+                    .stdout(Stdio::inherit()) //if stdout is inherited output stream will be empty, if it is piped, we don't have a prompt for input.
+                    .stderr(Stdio::inherit())
                     .output()
                 {
                     Ok(out) => {
@@ -184,10 +184,6 @@ fn eval_command(expr: &Expr, env: &Env) -> Result<(Value, Env), String> {
                             env.insert(String::from("$?"), Value::Num(code as f64));
                         }
                         return Ok((Value::Pipeline(out), env));
-                        // match String::from_utf8(out.stdout) {
-                        //     Ok(out) => return Ok((Value::Str(String::from(out.trim_end())), env)),
-                        //     Err(err) => return Err(format!("{}", err)),
-                        // }
                     }
                     Err(err) => {
                         return Err(format!("{}", err));

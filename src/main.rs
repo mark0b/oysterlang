@@ -32,7 +32,7 @@ fn main() {
             .expect("Failed to read line");
 
         // check if input is empty
-        if input.trim_end().len() == 0 {
+        if input.trim().is_empty() {
             continue;
         }
 

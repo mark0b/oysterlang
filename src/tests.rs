@@ -269,16 +269,16 @@ mod eval {
 
     #[test]
     fn test_command_python() {
-        assert_eval("python -c \"print(1+1)\"\n$?\n", "2\n0\n")
+        assert_eval("python -c \"print(1+1)\"\n$?\n", "0\n")
     }
 
     #[test]
     fn test_command_echo() {
-        assert_eval("bash \"-c\" \"echo nothing\"\n$?\n", "nothing\n0\n")
+        assert_eval("bash \"-c\" \"echo nothing\"\n$?\n", "0\n")
     }
 
     // #[test]
     // fn test_command_hello() {
-    //     assert_eval("./hello.exe\n", "Prompting an Input\nHello, world!\nhello\n")
+    //     assert_eval("./hello.exe\n$?\n", "0\n")
     // }
 }
