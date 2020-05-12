@@ -25,8 +25,8 @@ pub enum Token {
     Var(String),
     Num(String),
     Str(String),
-    // Path(String),
-    // Param(String),
+    Path(String),
+    Param(String),
 }
 
 pub enum Case {
@@ -36,13 +36,20 @@ pub enum Case {
 
 lazy_static! {
     static ref SPACE_REGEX: Regex = Regex::new(r"^[ \t\r]+").unwrap();
-    static ref VAR_REGEX: Regex = Regex::new(r"^\$[A-z0-9_]+").unwrap();
+    static ref VAR_REGEX: Regex = Regex::new(r"^\$[A-z0-9_?]+").unwrap();
     static ref NUM_REGEX: Regex = Regex::new(r"^\d+(?:\.\d+)?").unwrap();
     static ref STR_REGEX: Regex = Regex::new("^\"[^\"]*\"").unwrap();
+    static ref FILE_PATH_REGEX: Regex =
+        Regex::new(r#"^(((\.?\.?/|~/|[[:alpha:]]:/)?)((\.?[[:print:][^<>:"/\|?*]]+)/?)*(\.[[:alnum:]]+))|^([[:alpha:]][[:alnum:]]*)"#).unwrap();
     // static ref PATH_REGEX: Regex =
-    //     Regex::new(r"^/$|(^(?=/)|^.|^\.\.)(/(?=[^/\0])[^/\0]+)*/?").unwrap();
-    static ref PARAM_REGEX: Regex = Regex::new("^--?[A-z]+(-[A-z]+)*").unwrap();
+    //     Regex::new(r#"^(((\.\.?|~|[[:alpha:]]:|\\)(\\\.?[[:print:][^<>:"/\|?*]]+)+)|((\.\.?|~)?(/\.?[[:alnum:]]+)+))(\.[[:alnum:]]+)?|(\.\.?|~|/|[[:alpha:]]:\\)"#).unwrap();
+    static ref PARAM_REGEX: Regex = Regex::new(r"^--?[[:alpha:]]+(-[[:alpha:]]+)*").unwrap();
     static ref CASES: Vec<Case> = vec![
+        Case::Pat(&VAR_REGEX, Token::Var),
+        Case::Pat(&NUM_REGEX, Token::Num),
+        Case::Pat(&STR_REGEX, Token::Str),
+        Case::Pat(&PARAM_REGEX, Token::Param),
+        Case::Pat(&FILE_PATH_REGEX,Token::Path),
         Case::Sym("\n", Token::NewLine),
         Case::Sym("(", Token::LParen),
         Case::Sym(")", Token::RParen),
@@ -62,10 +69,6 @@ lazy_static! {
         Case::Sym("/", Token::Slash),
         Case::Sym("@", Token::At),
         Case::Sym("&", Token::Amp),
-        Case::Pat(&NUM_REGEX, Token::Num),
-        Case::Pat(&VAR_REGEX, Token::Var),
-        Case::Pat(&STR_REGEX, Token::Str),
-        // Case::Pat(&PATH_REGEX, |s| Token::Path(s)),
     ];
 }
 
@@ -90,6 +93,7 @@ impl Lexer<'_> {
                 }
                 Case::Pat(pat, f) => {
                     if let Some(some) = self.take_regex(pat, *f) {
+                        //eprintln!("found token {:?}",some); //uncomment this to troubleshoot.
                         return Some(some);
                     }
                 }

@@ -2,8 +2,8 @@
 
 #[macro_use]
 extern crate lazy_static;
-use std::io;
 use std::io::Write;
+use std::{env, io};
 
 mod interpreter;
 mod parser;
@@ -12,12 +12,17 @@ mod tokens;
 #[cfg(test)]
 mod tests;
 
-static PREFIX: &'static str = "🦪 >";
+static PREFIX: &'static str = "🦪 ";
 
 fn main() {
     loop {
         // prompt
         print!("{}", PREFIX);
+        if let Ok(dir) = env::current_dir() {
+            print!("{}", dir.to_str().unwrap());
+        }
+        print!("{}", ">");
+
         io::stdout().flush().unwrap();
 
         // read
@@ -26,12 +31,17 @@ fn main() {
             .read_line(&mut input)
             .expect("Failed to read line");
 
+        // check if input is empty
+        if input.trim().is_empty() {
+            continue;
+        }
+
         // eval
         let result = eval(&input);
 
         // print
         match result {
-            Ok(ok) => println!("{}", ok),
+            Ok(ok) => print!("{}", ok),
             Err(err) => eprintln!("{}", err),
         }
     }

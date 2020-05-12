@@ -19,7 +19,10 @@ pub enum Expr {
     Arr(),
     Num(f64),
     Str(String),
+    Path(String),
+    Param(String),
     Var(String),
+    Cmd(Box<Expr>, Vec<Expr>),
 }
 
 pub fn parse(ts: &[Token]) -> Result<Prog, String> {
@@ -67,10 +70,27 @@ fn parse_stmt(ts: &[Token]) -> Option<(Stmt, &[Token])> {
 }
 
 fn parse_expr(ts: &[Token]) -> Option<(Expr, &[Token])> {
+    if let [Token::Path(s), ..] = ts {
+        let mut exprs: Vec<Expr> = Vec::new();
+        let mut ts = &ts[1..];
+        loop {
+            // Gather the following expressions as a vector for modifying the command.
+            if let Some((expr, ts0)) = parse_factor(ts) {
+                exprs.push(expr);
+                ts = ts0;
+                continue;
+            }
+            break;
+        }
+        let expr = Expr::Cmd(box Expr::Path(String::from(s)), exprs);
+        return Some((expr, ts));
+    }
+
     if let Some((lfactor, ts)) = parse_term(ts) {
         let mut expr = lfactor;
         let mut ts = ts;
         loop {
+            // Keep finding arithmetic stuff chained onto the right side and nest them in expressions.
             if let [t, ..] = ts {
                 if let Token::Plus | Token::Minus = t {
                     if let Some((rexpr, ts0)) = parse_term(&ts[1..]) {
@@ -98,6 +118,7 @@ fn parse_term(ts: &[Token]) -> Option<(Expr, &[Token])> {
         let mut expr = lfactor;
         let mut ts = ts;
         loop {
+            // Keep finding multiplicitive stuff chained onto the right side and nest them in expressions.
             if let [t, ..] = ts {
                 if let Token::Ast | Token::Slash | Token::Mod = t {
                     if let Some((rexpr, ts0)) = parse_factor(&ts[1..]) {
@@ -130,6 +151,14 @@ fn parse_factor(ts: &[Token]) -> Option<(Expr, &[Token])> {
         return Some(some);
     }
 
+    if let Some(some) = parse_path(ts) {
+        return Some(some);
+    }
+
+    if let Some(some) = parse_param(ts) {
+        return Some(some);
+    }
+
     if let [Token::Var(s), ..] = ts {
         return Some((Expr::Var(s.clone()), &ts[1..]));
     }
@@ -137,6 +166,7 @@ fn parse_factor(ts: &[Token]) -> Option<(Expr, &[Token])> {
     if let [Token::LParen, ..] = ts {
         if let Some((expr, ts)) = parse_expr(&ts[1..]) {
             if let [Token::RParen, ..] = ts {
+                // Make sure you find a right parenthesis at the end of this nested expression.
                 return Some((expr, &ts[1..]));
             }
         }
@@ -159,6 +189,24 @@ fn parse_str(ts: &[Token]) -> Option<(Expr, &[Token])> {
     if let [Token::Str(s), ..] = ts {
         let val = s.trim_matches('"');
         let expr = Expr::Str(String::from(val));
+        return Some((expr, &ts[1..]));
+    }
+
+    return None;
+}
+
+fn parse_path(ts: &[Token]) -> Option<(Expr, &[Token])> {
+    if let [Token::Path(s), ..] = ts {
+        let expr = Expr::Path(String::from(s));
+        return Some((expr, &ts[1..]));
+    }
+
+    return None;
+}
+
+fn parse_param(ts: &[Token]) -> Option<(Expr, &[Token])> {
+    if let [Token::Param(s), ..] = ts {
+        let expr = Expr::Param(String::from(s));
         return Some((expr, &ts[1..]));
     }
 
