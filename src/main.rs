@@ -15,13 +15,10 @@ mod tests;
 static PREFIX: &'static str = "🦪 ";
 
 fn main() {
+    let mut session = interpreter::Session::new();
     loop {
         // prompt
-        print!("{}", PREFIX);
-        if let Ok(dir) = env::current_dir() {
-            print!("{}", dir.to_str().unwrap());
-        }
-        print!("{}", ">");
+        print!("{}{}{}", PREFIX, session.get_var("PWD"), ">");
 
         io::stdout().flush().unwrap();
 
@@ -37,22 +34,18 @@ fn main() {
         }
 
         // eval
-        let result = eval(&input);
+        let result = session.interpret(input);
 
-        // print
+        // printi 
         match result {
-            Ok(ok) => print!("{}", ok),
+            Ok(vals) => print!("{}", vals),
             Err(err) => eprintln!("{}", err),
         }
     }
 }
 
-pub fn eval(input: &str) -> Result<String, String> {
-    match tokens::tokenize(input) {
-        Ok(ts) => match parser::parse(&ts) {
-            Ok(prog) => interpreter::interpret(&prog),
-            Err(err) => Err(err),
-        },
-        Err(err) => Err(format!("{}", err)),
+pub fn eval(result: interpreter::Value) -> Result<String, String> {
+    match result {
+        interpreter::
     }
 }
